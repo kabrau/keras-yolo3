@@ -1,6 +1,7 @@
 import random
 import argparse
 import numpy as np
+import os
 
 from voc import parse_voc_annotation
 import json
@@ -97,6 +98,17 @@ def _main_(argv):
         config['train']['cache_name'],
         config['model']['labels']
     )
+
+    if os.path.exists(config['valid']['valid_annot_folder']):
+        valid_imgs, valid_labels = parse_voc_annotation(
+            config['valid']['valid_annot_folder'],
+            config['valid']['valid_image_folder'],
+            config['valid']['cache_name'],
+            config['model']['labels']
+        )
+        train_imgs.extend(valid_imgs)
+        train_labels.update(valid_labels)
+
 
     # run k_mean to find the anchors
     annotation_dims = []

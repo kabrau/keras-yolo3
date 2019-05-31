@@ -2,3 +2,13 @@
 *.jpeg
 *.weights
 *.h5
+*.pyc
+*.pkl
+/logs
+config_portoalegre_test.json
+comandos.txt
+config_canoas_1.json
+config_canoas_portoalegre.json
+config_canoas_test.json
+config_portoalegre_1.json
+config_portoalegre_canoas.json

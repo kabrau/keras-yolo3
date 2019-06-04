@@ -64,16 +64,24 @@ def _main_(args):
         frame_w = int(video_reader.get(cv2.CAP_PROP_FRAME_WIDTH))
 
         video_writer = cv2.VideoWriter(video_out,
-                               cv2.VideoWriter_fourcc(*'MPEG'), 
+                               cv2.VideoWriter_fourcc(*'XVID'), 
                                50.0, 
                                (frame_w, frame_h))
         # the main loop
         batch_size  = 1
         images      = []
         start_point = 0 #%
-        show_window = False
+        show_window = True
+        rotate = True
+
+        obj_thresh, nms_thresh = 0.3, 0.3
+
+
         for i in tqdm(range(nb_frames)):
             _, image = video_reader.read()
+            if rotate:
+                image = np.rot90(image,3)
+                image = image.copy() # Fix Bug np.rot90
 
             if (float(i+1)/nb_frames) > start_point/100.:
                 images += [image]
@@ -90,7 +98,9 @@ def _main_(args):
                         if show_window: cv2.imshow('video with bboxes', images[i])  
 
                         # write result to the output video
-                        video_writer.write(images[i]) 
+                        #video_writer.write(images[i])
+                        video_writer.write(np.uint8(image))
+
                     images = []
                 if show_window and cv2.waitKey(1) == 27: break  # esc to quit
 

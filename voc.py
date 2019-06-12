@@ -25,10 +25,8 @@ def parse_voc_annotation(ann_dir, img_dir, cache_name, labels=[]):
             folder = ''
             fileName = ''
             for elem in tree.iter():
-                if 'folder' in elem.tag:
-                    folder = elem.text # img['filename'] = img_dir + elem.text
                 if 'filename' in elem.tag:
-                    fileName = elem.text # img['filename'] = img_dir + elem.text
+                    fileName = img_dir + elem.text
                 if 'width' in elem.tag:
                     img['width'] = int(elem.text)
                 if 'height' in elem.tag:
@@ -61,8 +59,7 @@ def parse_voc_annotation(ann_dir, img_dir, cache_name, labels=[]):
                                 if 'ymax' in dim.tag:
                                     obj['ymax'] = int(round(float(dim.text)))
 
-            #folder = img_dir
-            img['filename'] = folder + fileName
+            img['filename'] = fileName
             if len(img['object']) > 0:
                 all_insts += [img]
 

@@ -1,6 +1,42 @@
-from keras.callbacks import TensorBoard, ModelCheckpoint
+from keras.callbacks import TensorBoard, ModelCheckpoint, Callback
 import tensorflow as tf
 import numpy as np
+from utils.utils import evaluate 
+
+class MAP_eval(Callback):
+    def __init__(self, data_generator):
+        self.data_generator = data_generator
+        self.maps = []
+
+    def eval_map(self):
+        return evaluate(self.model, self.data_generator)
+
+    def on_epoch_end(self, epoch, logs={}):
+        average_precisions = self.eval_map()
+        score = sum(average_precisions.values()) / len(average_precisions)
+
+        # print the score
+        #for label, average_precision in average_precisions.items():
+        #    print(labels[label] + ': {:.4f}'.format(average_precision))
+        #print('MAP for epoch %05d is {:.4f}'%(epoch, score))  
+        print('mAP', score)
+
+        self.maps.append(score)
+
+class MyCustomCallback(Callback):
+
+  def on_train_batch_begin(self, batch, logs=None):
+    print('Training: batch {} begins at {}'.format(batch, datetime.datetime.now().time()))
+
+  def on_train_batch_end(self, batch, logs=None):
+    print('Training: batch {} ends at {}'.format(batch, datetime.datetime.now().time()))
+
+  def on_test_batch_begin(self, batch, logs=None):
+    print('Evaluating: batch {} begins at {}'.format(batch, datetime.datetime.now().time()))
+
+  def on_test_batch_end(self, batch, logs=None):
+    print('Evaluating: batch {} ends at {}'.format(batch, datetime.datetime.now().time()))
+
 
 class CustomTensorBoard(TensorBoard):
     """ to log the loss after each batch

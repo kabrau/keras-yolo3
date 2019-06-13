@@ -14,19 +14,42 @@ from keras.models import load_model
 
 def _main_(args):
     config_path = args.conf
+    config_valid_path = args.validConf
 
     with open(config_path) as config_buffer:    
         config = json.loads(config_buffer.read())
 
+    if (config_valid_path):
+        with open(config_valid_path) as config_valid_buffer:    
+            config_valid = json.loads(config_valid_buffer.read())
+    else:
+        config_valid = config
+
+
     ###############################
     #   Create the validation generator
     ###############################  
-    valid_ints, labels = parse_voc_annotation(
-        config['valid']['valid_annot_folder'], 
-        config['valid']['valid_image_folder'], 
-        config['valid']['cache_name'],
-        config['model']['labels']
-    )
+    if os.path.exists(config_valid['valid']['valid_annot_folder']):
+        print('Images Loading ... ',config_valid['valid']['valid_image_folder'])
+        valid_ints, labels = parse_voc_annotation(
+            config_valid['valid']['valid_annot_folder'], 
+            config_valid['valid']['valid_image_folder'], 
+            config_valid['valid']['cache_name'],
+            config['model']['labels']
+        )
+    else:
+        print('Images Loading ... ',config_valid['train']['train_image_folder'])
+        train_ints, train_labels = parse_voc_annotation(
+            config_valid['train']['train_annot_folder'], 
+            config_valid['train']['train_image_folder'], 
+            config_valid['train']['cache_name'],
+            config['model']['labels']
+        )
+        train_valid_split = int(0.8*len(train_ints))
+        np.random.seed(0)
+        np.random.shuffle(train_ints)
+        np.random.seed()
+        valid_ints = train_ints[train_valid_split:]
 
     labels = labels.keys() if len(config['model']['labels']) == 0 else config['model']['labels']
     labels = sorted(labels)
@@ -50,6 +73,7 @@ def _main_(args):
     ###############################
     os.environ['CUDA_VISIBLE_DEVICES'] = config['train']['gpus']
 
+    print('Model Loadind ...', config['train']['saved_weights_name'])
     infer_model = load_model(config['train']['saved_weights_name'])
 
     # compute mAP for all the classes
@@ -63,6 +87,7 @@ def _main_(args):
 if __name__ == '__main__':
     argparser = argparse.ArgumentParser(description='Evaluate YOLO_v3 model on any dataset')
     argparser.add_argument('-c', '--conf', help='path to configuration file')    
+    argparser.add_argument('-e', '--validConf', help='path to configuration file to evaluation')    
     
     args = argparser.parse_args()
     _main_(args)
